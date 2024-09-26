@@ -4,21 +4,21 @@
 #include "phonebook.h"
 
 void printMenu() {
-    printf("============================================\n");
-    printf("                 전화번호부                 \n");
-    printf("============================================\n");
-    printf("              1. 전화번호 추가              \n");
-    printf("              2. 전화번호 삭제              \n");
-    printf("              3. 전화번호 검색              \n");
-    printf("              4. 전화번호 나열              \n");
-    printf("              5. 종료                       \n");
-    printf("============================================\n\n");
+    printf("==================================================\n");
+    printf("                    전화번호부                    \n");
+    printf("==================================================\n");
+    printf("                 1. 전화번호 추가                 \n");
+    printf("                 2. 전화번호 삭제                 \n");
+    printf("                 3. 전화번호 검색                 \n");
+    printf("                 4. 전화번호 나열                 \n");
+    printf("                 5. 종료                          \n");
+    printf("==================================================\n\n");
 }
 
 void printList(Phonebook* list) {
     Phonebook* p = list;
     int i = 1;
-  printf("\n=================== 목록 ===================\n\n");
+  printf("\n====================== 목록 ======================\n\n");
     if (p == NULL) {
         printf("등록된 연락처가 없습니다.\n");
         return;
@@ -79,7 +79,6 @@ void addList(Phonebook** list) {
             prev->link = p;
         }
         printf("연락처가 추가되었습니다: %s, %s\n\n", p->name, p->num);
-        getchar();
     }
 }
 
@@ -149,6 +148,10 @@ void freeList(Phonebook* list) {
 void getInput(char* buffer, int size) {
     if (fgets(buffer, size, stdin) != NULL) {
         buffer[strcspn(buffer, "\n")] = '\0'; // 개행 문자 제거
+
+        if (strlen(buffer) == size -1 && buffer[size - 2] != '\0') {
+            while (getchar() != '\n'); // 입력 버퍼 비우기
+        }
     }
 }
 
@@ -158,6 +161,10 @@ bool isPhoneNumber(const char* num) {
     for (int i = 0; i < 13; i++) {
         if (i == 0 || i == 2) {
             if (num[i] != '0')
+                return false;
+        }
+        else if (i == 1) {
+            if (num[i] != '1')
                 return false;
         }
         else if (i == 3 || i == 8) {
