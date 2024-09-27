@@ -1,10 +1,6 @@
 # C
 
 ```
-gcc -c phonebook.h
-```
-
-```
 gcc -c phonebook.c
 ```
 
