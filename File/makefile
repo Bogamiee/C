@@ -13,8 +13,10 @@ $(TARGET): $(OBJS)
 
 %.o: %.c myls.h
 	$(CC) $(CFLAGS) -c $< -o $@
+	clear
 
 clean:
 	rm -f $(OBJS) $(TARGET)
+	clear
 
 .PHONY: all clean

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "myls.h"
 
+int CAPACITY = 1024;
 int terminalWidth;
 
 int main(int argc, char *argv[])

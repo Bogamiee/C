@@ -20,7 +20,14 @@ int runLs(const int argc, const char **argv)
     int isRecursive = 0;
     int fileCount;
     const char *path = ".";
-    char *files[MAX_FILES];
+    char **files = malloc(CAPACITY * sizeof(char *));
+    
+    if (files == NULL) // 동적 메모리 할당 실패
+    {
+        perror("malloc");
+        free(files);
+        return -1;
+    }
 
     for (int i = 1; i < argc; i++)
     {
@@ -52,11 +59,11 @@ int runLs(const int argc, const char **argv)
     }
     else // isRecursive = 0
     {
-        fileCount = getFileList(files, path, isHidden);
+        fileCount = getFileList(&files, path, isHidden);
 
         if (isLong) // isLong = 1
         {
-            printInfo((const char **)files, (const char *)path);
+            printInfo((const char **)files, (const char *)path, fileCount);
         }
         else
         {
@@ -69,20 +76,15 @@ int runLs(const int argc, const char **argv)
         }
     }
     
+    free(files); // 동적으로 할당한 메모리 해제
     return 0;
 }
 
-int getFileList(char **files, const char *path, const int isHidden)
+int getFileList(char ***files, const char *path, const int isHidden)
 {
     DIR *dir = getDir(path);
     struct dirent *entry; // 디렉토리 엔트리
     int fileCount = 0; // 파일 개수
-
-    // 기존 배열을 초기화
-    for (int i = 0; i < MAX_FILES; i++) 
-    {
-        files[i] = NULL;
-    }
 
     while ((entry = readdir(dir)) != NULL) // 디렉토리 엔트리 읽기
     {
@@ -91,20 +93,32 @@ int getFileList(char **files, const char *path, const int isHidden)
             continue;
         }
 
-        files[fileCount] = (char *)malloc((strlen(entry->d_name) + 1) * sizeof(char)); // 파일 이름 동적 메모리 할당
-        if (files[fileCount] == NULL) // 동적 메모리 할당 실패
+        if (fileCount >= CAPACITY) // 배열 크기가 부족한 경우
+        {
+            CAPACITY *= 2;
+            char **temp = realloc(*files, CAPACITY * sizeof(char *));
+            if (temp == NULL) // 동적 메모리 할당 실패
+            {
+                perror("realloc");
+                closedir(dir);
+                return -1;
+            }
+            *files = temp;
+        }
+        (*files)[fileCount] = malloc((strlen(entry->d_name) + 1) * sizeof(char)); // 파일 이름 동적 메모리 할당
+        if ((*files)[fileCount] == NULL) // 동적 메모리 할당 실패
         {
             perror("malloc");
             closedir(dir);
             exit(1);
         }
         
-        strcpy(files[fileCount], entry->d_name); // 파일 이름 복사
+        strcpy((*files)[fileCount], entry->d_name); // 파일 이름 복사
         fileCount++;
     }
     closedir(dir);
 
-    qsort(files, fileCount, sizeof(char *), ascend); // 파일 이름 오름차순 정렬
+    qsort(*files, fileCount, sizeof(char *), ascend); // 파일 이름 오름차순 정렬
 
     return fileCount;
 }
@@ -224,13 +238,19 @@ void printFiles(const char **files, const int fileCount) // 파일 이름 출력
 
 void recursiveDir(const char *path, const int isHidden, const int isLong)
 {
-    char *newPaths[MAX_FILES];
-    int newFileCount = getFileList(newPaths, path, isHidden);
+    char **newPaths = malloc(CAPACITY * sizeof(char *));
+    if (newPaths == NULL)
+    {
+        perror("malloc");
+        return;
+    }
+
+    int newFileCount = getFileList(&newPaths, path, isHidden);
     
     printf("%s:\n", path);
     if (isLong) // isLong = 1
     {
-        printInfo((const char **)newPaths, path);
+        printInfo((const char **)newPaths, path, newFileCount);
     }
     else
     {
@@ -255,6 +275,7 @@ void recursiveDir(const char *path, const int isHidden, const int isLong)
         free(currentPath);
         free(newPaths[i]);
     }
+    free(newPaths);
 }
 
 void printFilePermissions(mode_t mode)
@@ -274,7 +295,7 @@ void printFilePermissions(mode_t mode)
         (mode & S_IXOTH) ? 'x' : '-');
 }
 
-void printInfo(const char **files, const char *path)
+void printInfo(const char **files, const char *path, const int fileCount)
 {
     struct stat st;
     int maxNlink = 0;
@@ -282,7 +303,7 @@ void printInfo(const char **files, const char *path)
     int maxSize = 0;
     int totalBlocks = 0;
 
-    for (int i = 0; files[i] != NULL; i++)
+    for (int i = 0; i < fileCount; i++)
     {
         char *buf = allocatePath(path, files[i]);
         getFileStat(buf, &st);
@@ -306,7 +327,7 @@ void printInfo(const char **files, const char *path)
 
     printf("total %d\n", totalBlocks / 2);
 
-    for (int i = 0; files[i] != NULL; i++)
+    for (int i = 0; i < fileCount; i++)
     {
         char *buf = allocatePath(path, files[i]);
         getFileStat(buf, &st);
