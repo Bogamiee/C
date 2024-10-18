@@ -59,7 +59,9 @@ int runLs(const int argc, const char **argv)
             printInfo((const char **)files, (const char *)path);
         }
         else
+        {
             printFiles((const char **)files, fileCount);
+        }
 
         for (int i = 0; i < fileCount; i++)
         {
@@ -77,7 +79,8 @@ int getFileList(char **files, const char *path, const int isHidden)
     int fileCount = 0; // 파일 개수
 
     // 기존 배열을 초기화
-    for (int i = 0; i < MAX_FILES; i++) {
+    for (int i = 0; i < MAX_FILES; i++) 
+    {
         files[i] = NULL;
     }
 
@@ -123,9 +126,13 @@ int ascend(const void *a, const void *b)
     const char *str2 = *(const char **)b;
 
     if (str1[0] == '.' || str1[0] == '_') // .으로 시작하는 파일은 다음 문자부터 비교
+    {
         str1++;
+    }
     if (str2[0] == '.' || str2[0] == '_')
+    {
         str2++;
+    }
 
     return strcasecmp(str1, str2);
 }
@@ -153,9 +160,13 @@ int getMaxCols(const char **files, const int fileCount, const int rows) // 특�
     for (int i = 0; i < targetCols; i++)
     {
         if ((i + 1) * rows < fileCount) 
+        {
             lastIndex = (i + 1) * rows;
+        }
         else 
+        {
             lastIndex = fileCount;
+        }
         maxLen = getMaxLen((const char **)files, i * rows, lastIndex);
         maxCols += maxLen + 2;
     }
@@ -168,7 +179,10 @@ int getMaxLen(const char **files, int st, int ed) // 파일 이름 중 가장 �
     for (int i = st; i < ed; i++)
     {
         int len = strlen(files[i]);
-        if (len > max) max = len;
+        if (len > max)
+        {
+            max = len;
+        }
     }
     return max;
 }
@@ -187,13 +201,21 @@ void printFiles(const char **files, const int fileCount) // 파일 이름 출력
             if (index < fileCount)
             {
                 if ((n + 1) * rows < fileCount)
+                {
                     i = (n + 1) * rows;
+                }
                 else
+                {
                     i = fileCount;
+                }
                 if (rows != fileCount)
+                {
                     printf("%-*s  ", getMaxLen(files, n * rows, i), files[index]);
+                }
                 else
+                {
                     printf("%s", files[index]);
+                }
             }
         }
         printf("\n");
@@ -207,9 +229,13 @@ void recursiveDir(const char *path, const int isHidden, const int isLong)
     
     printf("%s:\n", path);
     if (isLong) // isLong = 1
+    {
         printInfo((const char **)newPaths, path);
+    }
     else
+    {
         printFiles((const char **)newPaths, newFileCount);
+    }
     printf("\n");
 
     for (int i = 0; i < newFileCount; i++)
@@ -315,7 +341,10 @@ void printInfo(const char **files, const char *path)
 int getCountInt(int a)
 {
     int count = 0;
-    if (a == 0) return 1;
+    if (a == 0) 
+    {
+        return 1;
+    }
     while (a != 0)
     {
         a /= 10;
@@ -333,9 +362,13 @@ char* allocatePath(const char *path, const char *file)
         exit(1);
     }
     if (path[strlen(path) - 1] == '/')
+    {
         sprintf(buf, "%s%s", path, file);
+    }
     else
+    {
         sprintf(buf, "%s/%s", path, file);
+    }
     return buf;
 }
 
@@ -343,7 +376,6 @@ void getFileStat(const char *buf, struct stat *st)
 {
     if (lstat(buf, st) == -1)
     {
-    printf("%s\n", buf);
         perror("lstat");
         exit(1);
     }
