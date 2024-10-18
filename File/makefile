@@ -1,25 +1,20 @@
 # Makefile
 
-# 컴파일러 설정
 CC = gcc
-
-# 컴파일 플래그 설정
-CFLAGS = -Wall -Wextra -O2
-
-# 타겟 실행 파일 이름
+CFLAGS = -Wall -Wextra -g
 TARGET = ls
+SRCS = main.c myls.c
+OBJS = $(SRCS:.c=.o)
 
-# 소스 파일
-SRC = main.c
-
-# 기본 타겟
 all: $(TARGET)
 
-# 타겟 실행 파일 빌드 규칙
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
-# 'clean' 명령어를 통해 생성된 파일들을 삭제
+%.o: %.c myls.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 clean:
-	rm -f $(TARGET)
-	clear
+	rm -f $(OBJS) $(TARGET)
+
+.PHONY: all clean
